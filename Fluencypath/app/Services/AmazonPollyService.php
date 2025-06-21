@@ -27,7 +27,7 @@ class AmazonPollyService
             'OutputFormat' => 'mp3',
             'Text' => $text,
             'TextType' => 'text',
-            'VoiceId' => 'Ruth',
+             'VoiceId' => 'Ruth', //para escolher a voz, veja a lista de vozes disponíveis: https://us-east-1.console.aws.amazon.com/polly/home/SynthesizeSpeech
             'Engine' => 'neural'
         ]);
 
