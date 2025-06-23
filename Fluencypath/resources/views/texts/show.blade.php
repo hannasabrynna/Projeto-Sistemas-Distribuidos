@@ -99,31 +99,20 @@
                     <div id="waveform" class="w-[80%]"></div>
                 </figure>
                 <!-- TEXTO -->
-                <p id="text-content">
+                <p id="text-content">                
                     @php
-                    // Divide o texto em frases usando . ? ! ou ,
-                    $sentences = preg_split('/(?<=[.!?, ])\s+|(?=[A-Z])/', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
+                        // Divide em frases para sincronização
+                        $sentences = preg_split('/(?<=[.!?])\s+/', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
+                    @endphp
 
-                        // Se não encontrou nenhuma separação, trata como uma única frase
-                        if (count($sentences) === 0) {
-                        $sentences = [$texts->content];
-                        }
-                        @endphp
-
-                        <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
-                            @foreach ($sentences as $index => $sentence)
-                            <span class="sentence" data-index="{{ $index }}">
-                                @php
-                                $words = preg_split('/\s+/', trim($sentence), -1, PREG_SPLIT_NO_EMPTY);
-                                @endphp
-                                @foreach ($words as $word)
-                                <span class="word" data-word="{{ strtolower(preg_replace('/[^\p{L}\p{N}]+/u', '', $word)) }}">
-                                    {{ $word }}
-                                </span>
-                                @endforeach
-                            </span>
-                            @endforeach
-                        </p>
+                    @foreach ($sentences as $index => $sentence)
+                        <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
+                            {{ $sentence }}
+                        </span>
+                    @endforeach
+                </p>
+                   
+                    </p>
             </article>
         </article>
     </div>
@@ -140,3 +129,41 @@
 
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
     @endsection
+
+   <script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const audio = new Audio("{{ Storage::url($texts->audio->file_path) }}");
+    const playButton = document.getElementById("playButton");
+    const timer = document.getElementById("audioTimer");
+
+    const response = await fetch("{{ Storage::url($texts->audio->speech_marks_path) }}");
+    const lines = (await response.text()).trim().split("\n");
+    const marks = lines.map(line => JSON.parse(line)).filter(m => m.type === "sentence");
+
+audio.addEventListener("timeupdate", () => {
+    const currentTime = audio.currentTime;
+
+    for (let i = 0; i < marks.length; i++) {
+        const start = marks[i].time / 1000;
+        const end = marks[i + 1] ? marks[i + 1].time / 1000 : audio.duration;
+
+        const el = document.querySelector(`#sentence-${i}`);
+        if (el) {
+            if (currentTime >= start && currentTime < end) {
+                el.classList.add("bg-yellow-200");
+            } else {
+                el.classList.remove("bg-yellow-200");
+            }
+        }
+    }
+});
+
+    playButton.addEventListener("click", () => {
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    });
+});
+</script>

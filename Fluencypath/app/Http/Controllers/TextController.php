@@ -63,10 +63,12 @@ class TextController extends Controller
             // Caso contrário, gerar o áudio com o Amazon Polly
             $pollyService = new AmazonPollyService();
             $filePath = $pollyService->synthesizeSpeech($request->input('content'));
+            $speechMarksPath = $pollyService->generateSpeechMarks($request->input('content'));
 
             Audio::create([
                 'idText' => $text->id,
                 'file_path' => $filePath,
+                'speech_marks_path' => $speechMarksPath,
                 'title' => 'Gerado automaticamente pelo Polly',
             ]);
         }
