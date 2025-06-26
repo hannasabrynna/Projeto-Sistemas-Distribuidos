@@ -99,19 +99,21 @@
                     <div id="waveform" class="w-[80%]"></div>
                 </figure>
                 <!-- TEXTO -->
-                <p id="text-content">                
+                <p id="text-content">
                     @php
                         // Divide em frases para sincronização
                         $sentences = preg_split('/(?<=[.!?])\s+/', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
                     @endphp
 
+
+                    <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
                     @foreach ($sentences as $index => $sentence)
                         <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
                             {{ $sentence }}
                         </span>
                     @endforeach
                 </p>
-                   
+
                     </p>
             </article>
         </article>
