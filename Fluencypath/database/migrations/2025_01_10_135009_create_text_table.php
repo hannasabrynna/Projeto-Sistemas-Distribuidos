@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title', 255);
             $table->longText('content');
-            $table->string('tag', 255);
+            $table->string('tag', 255)->nullable();
             $table->unsignedBigInteger('idUser');
             $table->timestamps();
             $table->integer('favorites_count')->default(0);

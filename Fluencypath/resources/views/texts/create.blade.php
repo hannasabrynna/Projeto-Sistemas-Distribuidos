@@ -53,12 +53,12 @@
                         required
                         class="border border-neutral-300 p-2 rounded-lg focus:ring-neutral-300 focus:ring-opacity-100 focus:ring-1 focus:outline-none">
 
-                    <label for="tag" class="text-sm font-semibold">Tags</label>
+                    <!-- <label for="tag" class="text-sm font-semibold">Tags</label>
                     <input
                         id="tags-input"
                         name="tag"
                         required
-                        class="border border-neutral-300 p-2 rounded-lg focus:ring-neutral-300 focus:ring-opacity-100 focus:ring-1 focus:outline-none">
+                        class="border border-neutral-300 p-2 rounded-lg focus:ring-neutral-300 focus:ring-opacity-100 focus:ring-1 focus:outline-none"> -->
 
                     <label for="content" class="text-sm font-semibold">Texto</label>
                     <textarea
@@ -76,7 +76,7 @@
         </div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
 <script>
     const predefinedTags = ["Educação", "Música", "Ciência", "Saúde", "Tecnologia", "História", "Literatura", "Arte", "Filosofia", "Psicologia", "Esportes", "Negócios", "Economia", "Política", "Meio Ambiente", "Entretenimento", "Cinema", "Teatro", "Religião", "Espiritualidade", "Viagens", "Gastronomia", "Direito", "Matemática", "Astronomia", "Física", "Química", "Biologia", "Sociologia", "Linguística", "Programação", "Jogos", "Autodesenvolvimento", "Poesia", "Fotografia", "Meditação", "Moda", "Bem-estar", "Notícias", "Inovação", "Marketing", "Finanças", "Arquitetura", "Agricultura", "Inteligência Artificial", "Robótica", "Segurança da Informação", "Podcasts", "Curiosidades", "Cultura Pop", "Outros"]
@@ -88,7 +88,7 @@
             enabled: 1,
         },
     });
-</script>
+</script> -->
 
 </div>
 

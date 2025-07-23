@@ -73,17 +73,15 @@
 
             <ul>
                 @php
-                $tags = json_decode($text->tag, true);
+                $tags = explode(',', $text->tag);
                 @endphp
-                @if (is_array($tags))
-                @foreach (array_slice($tags, 0, 4) as $tag)
-                <li class="inline-block bg-neutral-100 font-secondary font-semibold text-sm text-primary-900 py-1 px-3 mt-4 mb-2 rounded-full">
-                    {{ $tag['value'] }}
-                </li>
+
+                @foreach (array_slice($tags, 0, 5) as $tag)
+                    <li class="inline-block bg-neutral-100 font-secondary font-semibold text-sm text-primary-900 py-1 px-3 mt-4 mb-2 rounded-full">
+                        {{ trim($tag) }}
+                    </li>
                 @endforeach
-                @else
-                <li>Tags não correspondente!</li>
-                @endif
+
             </ul>
             <p class="mt-2 text-sm text-gray-700 text-justify">{{ Str::limit($text->content, 160, '...') }}</p> <!--Limita até 25 caracteres do texto -->
             @if ($text->audio_path)

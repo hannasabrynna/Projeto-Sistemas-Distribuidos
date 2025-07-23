@@ -76,17 +76,14 @@
                 <!-- TAGS -->
                 <ul>
                     @php
-                    $tags = json_decode($texts->tag, true);
+                        $tags = explode(',', $texts->tag); // divide a string em um array
                     @endphp
-                    @if (is_array($tags))
+
                     @foreach ($tags as $tag)
-                    <li class="inline-block bg-neutral-100 font-secondary font-semibold text-sm text-primary-900 py-1 px-3 mt-4 mb-10 rounded-full">
-                        {{ $tag['value'] }}
-                    </li>
+                        <li class="inline-block bg-neutral-100 font-secondary font-semibold text-sm text-primary-900 py-1 px-3 mt-4 mb-10 rounded-full">
+                            {{ trim($tag) }}
+                        </li>
                     @endforeach
-                    @else
-                    <li>tags não correspondente</li>
-                    @endif
                 </ul>
             </section>
 

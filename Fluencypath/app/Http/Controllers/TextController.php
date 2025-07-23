@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AmazonComprehendService;
 use App\Services\AmazonPollyService;
 use App\Models\Text;
 use App\Models\Audio;
@@ -32,22 +33,29 @@ class TextController extends Controller
         return view('texts.index', compact('texts'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AmazonComprehendService $comprehendService)
     {
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'tag' => 'required|string|max:255',
+            // 'tag' => 'required|string|max:255',
             'audio' => 'nullable|file|mimes:mp3,wav,ogg|max:409600',
         ]);
+
+        $tags = $comprehendService->detectEntities($request->input('content'), 'pt');
+        $tags = collect($tags)->pluck('value')->toArray();
 
         // Criar o texto
         $text = Text::create([
             'title' => $request->input('title'),
             'content' => $request->input('content'),
-            'tag' => $request->input('tag'),
+            // 'tag' => $request->input('tag'),
+            // 'tag' => implode(', ', $tags),
+            'tag' => json_encode($tags), // salvando como JSON
             'idUser' => auth()->id(),
         ]);
+
+        
 
         // Se o usuário enviou um áudio, salvar normalmente
         if ($request->hasFile('audio')) {
