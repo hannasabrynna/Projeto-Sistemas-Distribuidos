@@ -128,7 +128,7 @@
     <!-- Importa o script do card das palras -->
     <script src="{{ asset('/js/word-tooltip.js') }}"></script>
     <!-- Importa o script do card das palras -->
-    <script src="{{ asset('/js/btn-favorite-tooltip.js') }}"></script>
+    <!-- <script src="{{ asset('/js/btn-favorite-tooltip.js') }}"></script> -->
 
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
     @endsection
@@ -139,27 +139,6 @@
             const playButton = document.getElementById("playButton");
             const timer = document.getElementById("audioTimer");
 
-            const response = await fetch("{{ Storage::url($texts->audio->speech_marks_path) }}");
-            const lines = (await response.text()).trim().split("\n");
-            const marks = lines.map(line => JSON.parse(line)).filter(m => m.type === "sentence");
-
-            audio.addEventListener("timeupdate", () => {
-                const currentTime = audio.currentTime;
-
-                for (let i = 0; i < marks.length; i++) {
-                    const start = marks[i].time / 1000;
-                    const end = marks[i + 1] ? marks[i + 1].time / 1000 : audio.duration;
-
-                    const el = document.querySelector(`#sentence-${i}`);
-                    if (el) {
-                        if (currentTime >= start && currentTime < end) {
-                            el.classList.add("bg-yellow-200");
-                        } else {
-                            el.classList.remove("bg-yellow-200");
-                        }
-                    }
-                }
-            });
 
             playButton.addEventListener("click", () => {
                 if (audio.paused) {

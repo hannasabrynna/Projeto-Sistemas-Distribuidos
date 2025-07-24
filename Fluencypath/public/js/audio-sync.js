@@ -29,9 +29,9 @@ document.addEventListener("DOMContentLoaded", function () {
              console.error("Erro: Caminho do áudio não encontrado.");
              return;
          }
- 
-        console.log("Carregando áudio:", audioPath);
-        waveSurfer.load(audioPath); 
+
+        // console.log("Carregando áudio:", audioPath);
+        waveSurfer.load(audioPath);
 
         waveSurfer.on("audioprocess", function () {
             let currentTime = waveSurfer.getCurrentTime();
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         waveSurfer.on("ready", function () {
             let totalDuration = waveSurfer.getDuration();
             calculateTimestamps(totalDuration);
-            document.getElementById("audioTimer").innerText = formatTime(0); 
+            document.getElementById("audioTimer").innerText = formatTime(0);
         });
 
         // Adiciona as ondas com o waveSurfer
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
             accumulatedTime += sentenceDuration;
         });
 
-        console.log("Timestamps ajustados:", sentenceTimestamps);
+        // console.log("Timestamps ajustados:", sentenceTimestamps);
     }
 
     function highlightCurrentSentence(currentTime) {
