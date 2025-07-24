@@ -51,14 +51,14 @@ class TextController extends Controller
 
         // Se o usuário enviou um áudio, salvar normalmente
         if ($request->hasFile('audio')) {
-            $audioFile = $request->file('audio');
-            $filePath = $audioFile->store('audio', 'public');
+            // $audioFile = $request->file('audio');
+            // $filePath = $audioFile->store('audio', 'public');
 
-            Audio::create([
-                'idText' => $text->id,
-                'file_path' => $filePath,
-                'title' => $audioFile->getClientOriginalName(),
-            ]);
+            // Audio::create([
+            //     'idText' => $text->id,
+            //     'file_path' => $filePath,
+            //     'title' => $audioFile->getClientOriginalName(),
+            // ]);
         } else {
             // Caso contrário, gerar o áudio com o Amazon Polly
             $pollyService = new AmazonPollyService();
@@ -116,7 +116,7 @@ class TextController extends Controller
         $text = Text::with('audio')->findOrFail($id);
 
         if ($text->audio) {
-            Storage::disk('public')->delete($text->audio->file_path);
+            Storage::disk('s3')->delete($text->audio->file_path);
             $text->audio->delete();
         }
 

@@ -94,27 +94,28 @@
             <article class="w-[60%] py-4">
                 <!-- AUDIO -->
                 <figure class="w-[100%] h-[40px] flex items-center bg-primary-200 border rounded-full p-4 my-4 gap-2">
-                    <button id="playButton" data-audio="{{ Storage::url($texts->audio->file_path) }}">▶️</button>
+                    <!-- <button id="playButton" data-audio="{{ Storage::url($texts->audio->file_path) }}">▶️</button> -->
+                    <button id="playButton" data-audio="{{ Storage::disk('s3')->url($texts->audio->file_path) }}">▶️</button>
                     <span id="audioTimer" class="font-secondary text-neutral-600 text-base">00:00</span>
                     <div id="waveform" class="w-[80%]"></div>
                 </figure>
                 <!-- TEXTO -->
                 <p id="text-content">
                     @php
-                        // Divide em frases para sincronização
-                        $sentences = preg_split('/(?<=[.!?])\s+/', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
-                    @endphp
+                    // Divide em frases para sincronização
+                    $sentences = preg_split('/(?<=[.!?])\s+ /', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
+                        @endphp
 
 
-                    <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
-                    @foreach ($sentences as $index => $sentence)
-                        <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
-                            {{ $sentence }}
-                        </span>
-                    @endforeach
+                        <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                            @foreach ($sentences as $index => $sentence)
+                            <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
+                                {{ $sentence }}
+                            </span>
+                            @endforeach
+                        </p>
+
                 </p>
-
-                    </p>
             </article>
         </article>
     </div>
@@ -132,40 +133,40 @@
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
     @endsection
 
-   <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const audio = new Audio("{{ Storage::url($texts->audio->file_path) }}");
-    const playButton = document.getElementById("playButton");
-    const timer = document.getElementById("audioTimer");
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const audio = new Audio("{{ Storage::disk('s3')->url($texts->audio->file_path) }}");
+            const playButton = document.getElementById("playButton");
+            const timer = document.getElementById("audioTimer");
 
-    const response = await fetch("{{ Storage::url($texts->audio->speech_marks_path) }}");
-    const lines = (await response.text()).trim().split("\n");
-    const marks = lines.map(line => JSON.parse(line)).filter(m => m.type === "sentence");
+            const response = await fetch("{{ Storage::url($texts->audio->speech_marks_path) }}");
+            const lines = (await response.text()).trim().split("\n");
+            const marks = lines.map(line => JSON.parse(line)).filter(m => m.type === "sentence");
 
-audio.addEventListener("timeupdate", () => {
-    const currentTime = audio.currentTime;
+            audio.addEventListener("timeupdate", () => {
+                const currentTime = audio.currentTime;
 
-    for (let i = 0; i < marks.length; i++) {
-        const start = marks[i].time / 1000;
-        const end = marks[i + 1] ? marks[i + 1].time / 1000 : audio.duration;
+                for (let i = 0; i < marks.length; i++) {
+                    const start = marks[i].time / 1000;
+                    const end = marks[i + 1] ? marks[i + 1].time / 1000 : audio.duration;
 
-        const el = document.querySelector(`#sentence-${i}`);
-        if (el) {
-            if (currentTime >= start && currentTime < end) {
-                el.classList.add("bg-yellow-200");
-            } else {
-                el.classList.remove("bg-yellow-200");
-            }
-        }
-    }
-});
+                    const el = document.querySelector(`#sentence-${i}`);
+                    if (el) {
+                        if (currentTime >= start && currentTime < end) {
+                            el.classList.add("bg-yellow-200");
+                        } else {
+                            el.classList.remove("bg-yellow-200");
+                        }
+                    }
+                }
+            });
 
-    playButton.addEventListener("click", () => {
-        if (audio.paused) {
-            audio.play();
-        } else {
-            audio.pause();
-        }
-    });
-});
-</script>
+            playButton.addEventListener("click", () => {
+                if (audio.paused) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+            });
+        });
+    </script>
