@@ -59,8 +59,8 @@ class AmazonPollyService
         $filename = $filename ?? uniqid('marks_') . '.json';
         $path = 'speechmarks/' . $filename;
 
-        Storage::disk('public')->put($path, $result['AudioStream']->getContents());
+        Storage::disk('s3')->put($path, $result['AudioStream']->getContents());
 
-        return $path;
+        return Storage::disk('s3')->url($path);
     }
 }
