@@ -94,28 +94,27 @@
             <article class="w-[60%] py-4">
                 <!-- AUDIO -->
                 <figure class="w-[100%] h-[40px] flex items-center bg-primary-200 border rounded-full p-4 my-4 gap-2">
-                    <!-- <button id="playButton" data-audio="{{ Storage::url($texts->audio->file_path) }}">▶️</button> -->
-                    <button id="playButton" data-audio="{{ Storage::disk('s3')->url($texts->audio->file_path) }}">▶️</button>
+                <button id="playButton" data-audio="{{ Storage::disk('s3')->url($texts->audio->file_path) }}">▶️</button>
                     <span id="audioTimer" class="font-secondary text-neutral-600 text-base">00:00</span>
                     <div id="waveform" class="w-[80%]"></div>
                 </figure>
                 <!-- TEXTO -->
                 <p id="text-content">
                     @php
-                    // Divide em frases para sincronização
-                    $sentences = preg_split('/(?<=[.!?])\s+ /', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
-                        @endphp
+                        // Divide em frases para sincronização
+                        $sentences = preg_split('/(?<=[.!?])\s+/', $texts->content, -1, PREG_SPLIT_NO_EMPTY);
+                    @endphp
 
 
-                        <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
-                            @foreach ($sentences as $index => $sentence)
-                            <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
-                                {{ $sentence }}
-                            </span>
-                            @endforeach
-                        </p>
-
+                    <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                    @foreach ($sentences as $index => $sentence)
+                        <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
+                            {{ $sentence }}
+                        </span>
+                    @endforeach
                 </p>
+
+                    </p>
             </article>
         </article>
     </div>
@@ -125,27 +124,23 @@
     <script src="https://unpkg.com/wavesurfer.js"></script>
     <!-- Importa o script para a sincronização -->
     <script src="{{ asset('/js/audio-sync.js') }}"></script>
-    <!-- Importa o script do card das palras -->
-    <script src="{{ asset('/js/word-tooltip.js') }}"></script>
-    <!-- Importa o script do card das palras -->
-    <!-- <script src="{{ asset('/js/btn-favorite-tooltip.js') }}"></script> -->
-
+    
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
     @endsection
 
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const audio = new Audio("{{ Storage::disk('s3')->url($texts->audio->file_path) }}");
-            const playButton = document.getElementById("playButton");
-            const timer = document.getElementById("audioTimer");
+   <script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const audio = new Audio("{{ Storage::disk('s3')->url($texts->audio->file_path) }}");
+    const playButton = document.getElementById("playButton");
+    const timer = document.getElementById("audioTimer");
 
 
-            playButton.addEventListener("click", () => {
-                if (audio.paused) {
-                    audio.play();
-                } else {
-                    audio.pause();
-                }
-            });
-        });
-    </script>
+    playButton.addEventListener("click", () => {
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    });
+});
+</script>
