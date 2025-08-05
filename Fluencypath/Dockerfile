@@ -1,24 +1,68 @@
-FROM php:8.4-fpm
+FROM composer AS composer-builder
 
-# Instalações básicas do sistema
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    curl \
-    git \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+COPY ./composer.json /application/composer.json
+COPY ./composer.lock /application/composer.lock
+COPY ./php-bin.sh /application/php-bin.sh
+COPY ./artisan /application/artisan
 
-# Composer
-COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+# Main application
+COPY ./app /application/app
 
-WORKDIR /var/www
+# Laravel
+COPY ./bootstrap /application/bootstrap
+COPY ./config /application/config
+COPY ./routes /application/routes
+COPY ./database/migrations /application/database/migrations
+COPY ./resources/views /application/resources/views
 
-COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+# Issues with composer scripts referencing php
+# https://frankenphp.dev/docs/known-issues/#composer-scripts-referencing-php
+RUN cp /usr/local/bin/php /usr/local/bin/php-cli && \
+    mv /application/php-bin.sh /usr/local/bin/php && \
+    chmod +x /usr/local/bin/php
 
-CMD ["php-fpm"]
+WORKDIR /application
+
+# Install dependencies
+RUN composer install --no-dev
+# Create cache directories
+RUN mkdir -p /application/storage/framework/cache/data && \
+    mkdir -p /application/storage/framework/views
+# Optimize Laravel
+RUN php artisan optimize
+# Create logs directory
+RUN mkdir -p /application/storage/logs
+
+FROM node AS node-builder
+
+COPY ./package.json /application/package.json
+COPY ./package-lock.json /application/package-lock.json
+COPY ./vite.config.ts /application/vite.config.ts
+COPY ./tsconfig.json /application/tsconfig.json
+COPY ./components.json /application/components.json
+COPY ./eslint.config.js /application/eslint.config.js
+COPY ./public /application/public
+COPY ./resources /application/resources
+COPY --from=composer-builder /application/vendor /application/vendor
+
+WORKDIR /application
+
+RUN npm ci && npm run build
+
+FROM dunglas/frankenphp AS server
+
+ENV SERVER_NAME=portal-crud.local.host
+
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+RUN docker-php-ext-install pcntl
+
+COPY --from=composer-builder /application /application
+COPY --from=node-builder /application/public /application/public
+COPY ./entrypoint.sh /application/entrypoint.sh
+
+WORKDIR /application
+
+RUN chmod +x /application/entrypoint.sh
+
+CMD ["/bin/bash", "-c", "/application/entrypoint.sh; php artisan octane:frankenphp --host=0.0.0.0 --port=80"]
