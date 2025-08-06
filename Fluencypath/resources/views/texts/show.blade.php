@@ -168,23 +168,6 @@
 
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
 
-   <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const audio = new Audio("{{ Storage::disk('s3')->url($texts->audio->file_path) }}");
-    const playButton = document.getElementById("playButton");
-    const timer = document.getElementById("audioTimer");
-
-
-
-    playButton.addEventListener("click", () => {
-        if (audio.paused) {
-            audio.play();
-        } else {
-            audio.pause();
-        }
-    });
-});
-</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {

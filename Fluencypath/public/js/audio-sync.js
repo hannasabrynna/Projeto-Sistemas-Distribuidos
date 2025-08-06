@@ -1,19 +1,28 @@
-// Script responsavel pela sincronização entre audio e texto - Importado no Show.blade.php
-
 document.addEventListener("DOMContentLoaded", function () {
-    let waveSurfer;
-    let initialized = false;
-    let sentenceTimestamps = [];
-    let sentences = document.querySelectorAll(".sentence");
-    const playButton = document.getElementById("playButton");
+    // Se já existir uma instância anterior, destrói
+    if (window.waveSurfer && typeof window.waveSurfer.destroy === "function") {
+        window.waveSurfer.destroy();
+    }
 
-    function formatTime(seconds){
+    let waveSurfer;
+    let sentenceTimestamps = [];
+    const sentences = document.querySelectorAll(".sentence");
+    const playButton = document.getElementById("playButton");
+    const audioTimer = document.getElementById("audioTimer");
+
+    function formatTime(seconds) {
         let minutes = Math.floor(seconds / 60);
         let secs = Math.floor(seconds % 60);
         return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
 
     function initializeWavesurfer() {
+        const audioPath = playButton.getAttribute("data-audio");
+        if (!audioPath) {
+            console.error("Erro: Caminho do áudio não encontrado.");
+            return;
+        }
+
         waveSurfer = WaveSurfer.create({
             container: "#waveform",
             waveColor: "gray",
@@ -22,111 +31,80 @@ document.addEventListener("DOMContentLoaded", function () {
             height: 3,
         });
 
-         // Pega o caminho do áudio diretamente do botão Play
-         let audioPath = playButton.getAttribute("data-audio");
-
-         if (!audioPath) {
-             console.error("Erro: Caminho do áudio não encontrado.");
-             return;
-         }
-
-        // console.log("Carregando áudio:", audioPath);
         waveSurfer.load(audioPath);
 
         waveSurfer.on("audioprocess", function () {
-            let currentTime = waveSurfer.getCurrentTime();
-            document.getElementById("audioTimer").innerText = formatTime(currentTime);
+            const currentTime = waveSurfer.getCurrentTime();
+            audioTimer.innerText = formatTime(currentTime);
             highlightCurrentSentence(currentTime);
         });
 
-        // Pega a duração (tempo) do audio
         waveSurfer.on("ready", function () {
-            let totalDuration = waveSurfer.getDuration();
+            const totalDuration = waveSurfer.getDuration();
             calculateTimestamps(totalDuration);
-            document.getElementById("audioTimer").innerText = formatTime(0);
-        });
-
-        // Adiciona as ondas com o waveSurfer
-        waveSurfer.on("audioprocess", function () {
-            highlightCurrentSentence(waveSurfer.getCurrentTime());
+            audioTimer.innerText = formatTime(0);
         });
 
         waveSurfer.on("finish", function () {
-            document.getElementById("audioTimer").innerText = formatTime(waveSurfer.getDuration());
+            audioTimer.innerText = formatTime(waveSurfer.getDuration());
             playButton.innerText = "▶️";
         });
 
-        initialized = true;
+        // Salva no escopo global para evitar duplicação
+        window.waveSurfer = waveSurfer;
     }
 
     initializeWavesurfer();
 
     playButton.addEventListener("click", function () {
-        if (!initialized) {
-            initializeWavesurfer();
-        }
+        if (!waveSurfer) return;
 
         if (waveSurfer.isPlaying()) {
             waveSurfer.pause();
-            this.innerText = "▶️";
+            playButton.innerText = "▶️";
         } else {
             waveSurfer.play();
-            this.innerText = "⏸️";
+            playButton.innerText = "⏸️";
         }
     });
 
     function calculateTimestamps(totalDuration) {
-        let numSentences = sentences.length;
+        const numSentences = sentences.length;
         let totalWords = 0;
-        let wordsPerSentence = [];
+        const wordsPerSentence = [];
 
-        // Conta o número total de palavras
         sentences.forEach(sentence => {
-            let words = sentence.textContent.trim().split(/\s+/).length;
+            const words = sentence.textContent.trim().split(/\s+/).length;
             wordsPerSentence.push(words);
             totalWords += words;
         });
 
         let accumulatedTime = 0;
+        sentenceTimestamps = [];
 
-        // Distribuir o tempo proporcionalmente ao número de palavras
-        sentenceTimestamps = []; // Atualizando a variável global
         wordsPerSentence.forEach((words, index) => {
             let sentenceDuration = (words / totalWords) * totalDuration;
-            sentenceDuration += 0.5; // Adiciona meio segundo extra para cada frase
-
+            sentenceDuration += 0.5;
             sentenceTimestamps.push(accumulatedTime);
             accumulatedTime += sentenceDuration;
         });
-
-        // console.log("Timestamps ajustados:", sentenceTimestamps);
     }
 
     function highlightCurrentSentence(currentTime) {
-    sentences.forEach((sentence, index) => {
-        if (
-            currentTime >= sentenceTimestamps[index] &&
-            (index === sentenceTimestamps.length - 1 || currentTime < sentenceTimestamps[index + 1])
-        ) {
-            // Destaca frase em inglês
-            sentence.classList.add("highlight");
+        sentences.forEach((sentence, index) => {
+            const isCurrent =
+                currentTime >= sentenceTimestamps[index] &&
+                (index === sentenceTimestamps.length - 1 || currentTime < sentenceTimestamps[index + 1]);
 
-            // Destaca frase correspondente em português
             const portugueseSentence = document.getElementById(`sentence-pt-${index}`);
-            if (portugueseSentence) {
-                portugueseSentence.classList.add("highlight");
-            }
-        } else {
-            // Remove destaque em inglês
-            sentence.classList.remove("highlight");
 
-            // Remove destaque em português
-            const portugueseSentence = document.getElementById(`sentence-pt-${index}`);
-            if (portugueseSentence) {
-                portugueseSentence.classList.remove("highlight");
+            if (isCurrent) {
+                sentence.classList.add("highlight");
+                if (portugueseSentence) portugueseSentence.classList.add("highlight");
+            } else {
+                sentence.classList.remove("highlight");
+                if (portugueseSentence) portugueseSentence.classList.remove("highlight");
             }
-        }
-    });
-}
-
+        });
+    }
 });
