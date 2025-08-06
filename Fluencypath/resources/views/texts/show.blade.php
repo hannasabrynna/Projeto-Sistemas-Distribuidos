@@ -106,13 +106,34 @@
                     @endphp
 
 
-                    <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                     <!-- <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
                     @foreach ($sentences as $index => $sentence)
                         <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
                             {{ $sentence }}
                         </span>
                     @endforeach
-                </p>
+                </p> -->
+
+                                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-bold text-neutral-700 mb-2">Inglês</h4>
+                        <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                            @foreach ($sentences as $index => $sentence)
+                                <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
+                                    {{ $sentence }}
+                                </span> -
+                            @endforeach
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-neutral-700 mb-2">Português</h4>
+                        <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                            {{ $translatedText }}
+                        </p>
+                    </div>
+                </div>
+
 
                     </p>
             </article>
@@ -124,7 +145,7 @@
     <script src="https://unpkg.com/wavesurfer.js"></script>
     <!-- Importa o script para a sincronização -->
     <script src="{{ asset('/js/audio-sync.js') }}"></script>
-    
+
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
     @endsection
 

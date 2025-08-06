@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AmazonTranslateService;
 use App\Services\AmazonPollyService;
 use App\Models\Text;
 use App\Models\Audio;
@@ -105,11 +106,24 @@ class TextController extends Controller
         return redirect()->route('texts.index')->with('success', 'Texto e  áudio atualizados com sucesso!');
     }
 
-    public function show($id)
-    {
-        $texts = Text::with('audio')->findOrFail($id);
-        return view('texts.show', compact('texts'));
+    public function show($id, AmazonTranslateService $translateService)
+{
+    $texts = Text::with('audio')->findOrFail($id);
+
+    // Se não tiver tradução salva no banco
+    if (!$texts->translated_content) {
+        $translated = $translateService->translateText($texts->content);
+
+        $texts->translated_content = $translated;
+        $texts->save();
+
     }
+
+    return view('texts.show', [
+        'texts' => $texts,
+        'translatedText' => $texts->translated_content
+    ]);
+}
 
     public function destroy($id)
     {
