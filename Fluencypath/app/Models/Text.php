@@ -16,7 +16,9 @@ class Text extends Model
         'content',
         'tag',
         'idUser',
-        'favorites_count'
+        'favorites_count',
+        'translated_content',
+
     ];
 
     /**
