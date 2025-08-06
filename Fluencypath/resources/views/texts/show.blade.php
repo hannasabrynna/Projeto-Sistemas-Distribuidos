@@ -98,6 +98,17 @@
                     <span id="audioTimer" class="font-secondary text-neutral-600 text-base">00:00</span>
                     <div id="waveform" class="w-[80%]"></div>
                 </figure>
+
+                <!-- BOTÃO PARA OCULTAR A TRADUÇÃO -->
+
+                <div class="mb-4 flex justify-end">
+                <x-tertiary-button id="toggle-translation">
+                        Ocultar tradução
+                </x-tertiary-button>
+                </div>
+
+
+
                 <!-- TEXTO -->
                 <p id="text-content">
                     @php
@@ -114,8 +125,8 @@
                     @endforeach
                 </p> -->
 
-                                <div class="grid grid-cols-2 gap-4">
-                    <div>
+                                 <div id="text-grid" class="grid grid-cols-2 gap-4"> <!--div para deixar os texto lado a lado -->
+                    <div id="english-section>
                         <h4 class="font-bold text-neutral-700 mb-2">Inglês</h4>
                         <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
                             @foreach ($sentences as $index => $sentence)
@@ -126,7 +137,7 @@
                         </p>
                     </div>
 
-                    <div>
+                    <div id="translated-section">
                         <h4 class="font-bold text-neutral-700 mb-2">Português</h4>
                         <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
                             {{ $translatedText }}
@@ -147,13 +158,13 @@
     <script src="{{ asset('/js/audio-sync.js') }}"></script>
 
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
-    @endsection
 
    <script>
 document.addEventListener("DOMContentLoaded", async () => {
     const audio = new Audio("{{ Storage::disk('s3')->url($texts->audio->file_path) }}");
     const playButton = document.getElementById("playButton");
     const timer = document.getElementById("audioTimer");
+
 
 
     playButton.addEventListener("click", () => {
@@ -165,3 +176,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleButton = document.getElementById("toggle-translation");
+    const translatedSection = document.getElementById("translated-section");
+    const textGrid = document.getElementById("text-grid");
+
+    if (toggleButton && translatedSection && textGrid) {
+        toggleButton.addEventListener("click", () => {
+            translatedSection.classList.toggle("hidden");
+
+            if (translatedSection.classList.contains("hidden")) {
+                toggleButton.textContent = "Mostrar tradução";
+
+                // Remove grid de 2 colunas → usa apenas uma
+                textGrid.classList.remove("grid-cols-2");
+                textGrid.classList.add("grid-cols-1");
+            } else {
+                toggleButton.textContent = "Ocultar tradução";
+
+                // Volta para duas colunas
+                textGrid.classList.remove("grid-cols-1");
+                textGrid.classList.add("grid-cols-2");
+            }
+        });
+    }
+});
+</script>
+
+
+@endsection
