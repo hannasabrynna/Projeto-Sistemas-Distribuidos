@@ -36,3 +36,12 @@
     background-color: cyan;
     font-size: 18px;
 }
+
+/* Destaque das frases em português*/
+.highlight {
+    background-color: #d1e7ff; /* azul claro */
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}

@@ -126,22 +126,31 @@
                 </p> -->
 
                                  <div id="text-grid" class="grid grid-cols-2 gap-4"> <!--div para deixar os texto lado a lado -->
-                    <div id="english-section>
+                    <div id="english-section">
                         <h4 class="font-bold text-neutral-700 mb-2">Inglês</h4>
                         <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
                             @foreach ($sentences as $index => $sentence)
                                 <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
                                     {{ $sentence }}
-                                </span> -
+                                </span>
                             @endforeach
                         </p>
                     </div>
 
                     <div id="translated-section">
                         <h4 class="font-bold text-neutral-700 mb-2">Português</h4>
+                        @php
+                          $translatedSentences = preg_split('/(?<=[.!?])\s+/', $translatedText, -1, PREG_SPLIT_NO_EMPTY);
+                        @endphp
+
                         <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
-                            {{ $translatedText }}
+                            @foreach ($translatedSentences as $index => $sentence)
+                                <span class="sentence-pt" id="sentence-pt-{{ $index }}" data-index="{{ $index }}">
+                                    {{ $sentence }}
+                                </span>
+                            @endforeach
                         </p>
+
                     </div>
                 </div>
 

@@ -103,15 +103,30 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function highlightCurrentSentence(currentTime) {
-        sentences.forEach((sentence, index) => {
-            if (
-                currentTime >= sentenceTimestamps[index] &&
-                (index === sentenceTimestamps.length - 1 || currentTime < sentenceTimestamps[index + 1])
-            ) {
-                sentence.classList.add("highlight");
-            } else {
-                sentence.classList.remove("highlight");
+    sentences.forEach((sentence, index) => {
+        if (
+            currentTime >= sentenceTimestamps[index] &&
+            (index === sentenceTimestamps.length - 1 || currentTime < sentenceTimestamps[index + 1])
+        ) {
+            // Destaca frase em inglês
+            sentence.classList.add("highlight");
+
+            // Destaca frase correspondente em português
+            const portugueseSentence = document.getElementById(`sentence-pt-${index}`);
+            if (portugueseSentence) {
+                portugueseSentence.classList.add("highlight");
             }
-        });
-    }
+        } else {
+            // Remove destaque em inglês
+            sentence.classList.remove("highlight");
+
+            // Remove destaque em português
+            const portugueseSentence = document.getElementById(`sentence-pt-${index}`);
+            if (portugueseSentence) {
+                portugueseSentence.classList.remove("highlight");
+            }
+        }
+    });
+}
+
 });
