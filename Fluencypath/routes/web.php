@@ -52,7 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/texts/{id}/favorite', [FavoriteController::class, 'toggleFavorite'])->name('texts.toggleFavorite');
     Route::get('/texts/{id}/favorites-count', [FavoriteController::class, 'getFavoritesCount'])->name('texts.getFavoritesCount');
 
-    Route::post('/flashcards', [FlashcardController::class, 'store'])->name('flashcards.index');
+    Route::post('/flashcards', [FlashcardController::class, 'store'])->name('flashcards.store');
     Route::get('/flashcards', [FlashcardController::class, 'index'])->name('flashcards.index');
     Route::delete('/flashcards/{id}', [FlashcardController::class, 'destroy'])->name('flashcards.destroy');
     Route::get('/word/{word}', [WordController::class, 'getWordData']);
