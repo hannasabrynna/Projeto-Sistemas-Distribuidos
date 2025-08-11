@@ -1,90 +1,49 @@
-# ===================================
-# Stage 1: Composer (PHP dependencies)
-# ===================================
-FROM composer:2.7 AS composer-builder
-
-WORKDIR /var/www
-
-# Copiar apenas os arquivos de dependência primeiro para cachear a camada
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
-
-# Copiar o restante do código-fonte do Laravel
+# -------------------------------
+# Etapa 1: Builder
+# -------------------------------
+FROM composer:2 AS composer_build
+WORKDIR /var/www/html
 COPY . .
+RUN composer install --no-dev --prefer-dist --optimize-autoloader
 
-# ===================================
-# Stage 2: Node (JS/CSS build)
-# ===================================
-FROM node:20 AS node-builder
-
-WORKDIR /var/www
-
-# Copiar os arquivos de dependência do Node
+# Node build (se tiver frontend)
+FROM node:22-alpine AS node_build
+WORKDIR /var/www/html
 COPY package.json package-lock.json ./
 RUN npm ci
-
-# Copiar o código-fonte necessário para o build dos assets
-COPY vite.config.* ./
-COPY resources ./resources
-
-# Construir os assets
+COPY . .
 RUN npm run build
 
-# ===================================
-# Stage 3: Apache + PHP (App final)
-# ===================================
-FROM php:8.4-apache AS app
+# -------------------------------
+# Etapa 2: Runtime
+# -------------------------------
+FROM php:8.3-apache-bookworm
 
-# Instalar dependências do sistema e extensões PHP
+# Instalar dependências necessárias
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    libonig-dev \
-    libxml2-dev \
-    default-mysql-client \
-    netcat-openbsd \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+        libzip-dev unzip git netcat-openbsd default-mysql-client \
+    && docker-php-ext-install pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Ativar módulo rewrite do Apache
+# Ativar mod_rewrite
 RUN a2enmod rewrite
 
-# Configurar o VirtualHost do Apache para apontar para /public
-RUN echo "<VirtualHost *:80>\n\
-    ServerName localhost\n\
-    DocumentRoot /var/www/public\n\
-    <Directory /var/www/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
-    ErrorLog \${APACHE_LOG_DIR}/error.log\n\
-    CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+WORKDIR /var/www/html
 
-WORKDIR /var/www
+# Copiar aplicação (PHP)
+COPY --from=composer_build /var/www/html /var/www/html
 
-# Copiar o código-fonte da aplicação e as dependências do estágio do composer
-COPY --from=composer-builder /var/www .
+# Copiar build do frontend (se aplicável)
+COPY --from=node_build /var/www/html/public /var/www/html/public
 
-# Copiar os assets compilados do estágio do node
-COPY --from=node-builder /var/www/public ./public
-
-# Copiar o script de espera e torná-lo executável
+# Copiar script wait-for-db.sh
 COPY wait-for-db.sh /usr/local/bin/wait-for-db.sh
 RUN chmod +x /usr/local/bin/wait-for-db.sh
 
-# Ajustar permissões para o Laravel
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Permissões
+RUN chown -R www-data:www-data /var/www/html
 
-EXPOSE 80
-
-# Definir o ENTRYPOINT para o nosso script de espera
 ENTRYPOINT [ "wait-for-db.sh" ]
 
-# O comando padrão que o ENTRYPOINT irá executar após o banco de dados estar pronto
+EXPOSE 80
 CMD ["apache2-foreground"]
