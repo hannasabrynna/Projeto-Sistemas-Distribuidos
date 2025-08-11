@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: fluency_path
+      DB_USERNAME: fluency_path
+      DB_PASSWORD: mysql_password
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:Ge/6ZOl70m5eGbfkZqxsL367browAviF68dMVgw6WK8=
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql_password
+      MYSQL_DATABASE: fluency_path
+      MYSQL_USER: fluency_path
+      MYSQL_PASSWORD: mysql_password
+    ports:
+      - "3307:3306" # host:container
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
