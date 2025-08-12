@@ -3,8 +3,8 @@
         {
             "name": "fluencypath-ecr",
             "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr:latest",
-            "cpu": 338,
-            "memory": 384,
+            "cpu": 256,
+            "memory": 256,
             "portMappings": [
                 {
                     "name": "lavarel-port",
@@ -16,7 +16,7 @@
             ],
             "essential": true,
             "environment": [
-                { "name": "DB_HOST", "value": "127.0.0.1" },
+                { "name": "DB_HOST", "value": "db" },
                 { "name": "DB_PORT", "value": "3306" },
                 { "name": "DB_DATABASE", "value": "fluency_path" },
                 { "name": "DB_USERNAME", "value": "fluency_path" },
@@ -44,8 +44,8 @@
         {
             "name": "db",
             "image": "mysql:5.7",
-            "cpu": 169,
-            "memory": 384,
+            "cpu": 256,
+            "memory": 600,
             "portMappings": [
                 {
                     "containerPort": 3306,
@@ -96,7 +96,7 @@
         "EC2"
     ],
     "cpu": "512",
-    "memory": "768",
+    "memory": "856",
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
