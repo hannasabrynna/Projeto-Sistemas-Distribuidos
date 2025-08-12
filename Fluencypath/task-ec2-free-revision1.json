@@ -1,11 +1,10 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:960005778154:task-definition/task-ec2-free:1",
     "containerDefinitions": [
         {
             "name": "fluencypath-ecr",
-            "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr:659477db6ae97298fc1a70defbdd7bb5c874fccb",
-            "cpu": 512,
-            "memory": 768,
+            "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr:latest",
+            "cpu": 338,
+            "memory": 384,
             "portMappings": [
                 {
                     "name": "lavarel-port",
@@ -16,11 +15,58 @@
                 }
             ],
             "essential": true,
-            "environment": [],
+            "environment": [
+                { "name": "DB_HOST", "value": "127.0.0.1" },
+                { "name": "DB_PORT", "value": "3306" },
+                { "name": "DB_DATABASE", "value": "fluency_path" },
+                { "name": "DB_USERNAME", "value": "fluency_path" },
+                { "name": "DB_PASSWORD", "value": "password_mysql" }
+            ],
             "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
             "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/task-ec2-free",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "systemControls": [],
+            "links": [
+                "db"
+            ]
+        },
+        {
+            "name": "db",
+            "image": "mysql:5.7",
+            "cpu": 169,
+            "memory": 384,
+            "portMappings": [
+                {
+                    "containerPort": 3306,
+                    "hostPort": 3307,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                { "name": "MYSQL_ROOT_PASSWORD", "value": "password_mysql" },
+                { "name": "MYSQL_DATABASE", "value": "fluency_path" },
+                { "name": "MYSQL_USER", "value": "fluency_path" },
+                { "name": "MYSQL_PASSWORD", "value": "password_mysql" }
+            ],
+            "mountPoints": [
+                {
+                    "sourceVolume": "db-data",
+                    "containerPath": "/var/lib/mysql",
+                    "readOnly": false
+                }
+            ],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -37,36 +83,15 @@
     "family": "task-ec2-free",
     "executionRoleArn": "arn:aws:iam::960005778154:role/ecsTaskExecutionRole",
     "networkMode": "bridge",
-    "revision": 1,
-    "volumes": [],
-    "status": "ACTIVE",
-    "requiresAttributes": [
+    "volumes": [
         {
-            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-        },
-        {
-            "name": "ecs.capability.execution-role-awslogs"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.ecr-auth"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "ecs.capability.execution-role-ecr-pull"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+            "name": "db-data",
+            "host": {
+                "sourcePath": "/ecs/db-data"
+            }
         }
     ],
     "placementConstraints": [],
-    "compatibilities": [
-        "EC2"
-    ],
     "requiresCompatibilities": [
         "EC2"
     ],
@@ -76,7 +101,10 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-08-11T19:26:48.864Z",
-    "registeredBy": "arn:aws:iam::960005778154:root",
-    "tags": []
+    "tags": [
+        {
+            "key": "Name",
+            "value": "task-ec2-free"
+        }
+    ]
 }
