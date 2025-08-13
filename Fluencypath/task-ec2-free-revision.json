@@ -2,7 +2,7 @@
     "containerDefinitions": [
         {
             "name": "fluencypath-ecr",
-            "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr:latest",
+            "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr",
             "cpu": 256,
             "memory": 256,
             "portMappings": [
@@ -46,13 +46,12 @@
         },
         {
             "name": "db",
-            "image": "mysql:5.7",
+            "image": "mysql:8.0",
             "cpu": 256,
             "memory": 600,
             "portMappings": [
                 {
                     "containerPort": 3306,
-                    "hostPort": 3307,
                     "protocol": "tcp"
                 }
             ],
