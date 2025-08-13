@@ -94,10 +94,21 @@
             <article class="w-[60%] py-4">
                 <!-- AUDIO -->
                 <figure class="w-[100%] h-[40px] flex items-center bg-primary-200 border rounded-full p-4 my-4 gap-2">
-                    <button id="playButton" data-audio="{{ Storage::url($texts->audio->file_path) }}">▶️</button>
+                <button id="playButton" data-audio="{{ Storage::disk('s3')->url($texts->audio->file_path) }}">▶️</button>
                     <span id="audioTimer" class="font-secondary text-neutral-600 text-base">00:00</span>
                     <div id="waveform" class="w-[80%]"></div>
                 </figure>
+
+                <!-- BOTÃO PARA OCULTAR A TRADUÇÃO -->
+
+                <div class="mb-4 flex justify-end">
+                <x-tertiary-button id="toggle-translation">
+                        Ocultar tradução
+                </x-tertiary-button>
+                </div>
+
+
+
                 <!-- TEXTO -->
                 <p id="text-content">
                     @php
@@ -106,13 +117,43 @@
                     @endphp
 
 
-                    <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                     <!-- <p id="text-content" class=" bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
                     @foreach ($sentences as $index => $sentence)
                         <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
                             {{ $sentence }}
                         </span>
                     @endforeach
-                </p>
+                </p> -->
+
+                                 <div id="text-grid" class="grid grid-cols-2 gap-4"> <!--div para deixar os texto lado a lado -->
+                    <div id="english-section">
+                        <h4 class="font-bold text-neutral-700 mb-2">Inglês</h4>
+                        <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                            @foreach ($sentences as $index => $sentence)
+                                <span class="sentence" id="sentence-{{ $index }}" data-index="{{ $index }}">
+                                    {{ $sentence }}
+                                </span>
+                            @endforeach
+                        </p>
+                    </div>
+
+                    <div id="translated-section">
+                        <h4 class="font-bold text-neutral-700 mb-2">Português</h4>
+                        @php
+                          $translatedSentences = preg_split('/(?<=[.!?])\s+/', $translatedText, -1, PREG_SPLIT_NO_EMPTY);
+                        @endphp
+
+                        <p class="bg-primary-200 border rounded-md text-neutral-600 text-justify p-8">
+                            @foreach ($translatedSentences as $index => $sentence)
+                                <span class="sentence-pt" id="sentence-pt-{{ $index }}" data-index="{{ $index }}">
+                                    {{ $sentence }}
+                                </span>
+                            @endforeach
+                        </p>
+
+                    </div>
+                </div>
+
 
                     </p>
             </article>
@@ -124,48 +165,37 @@
     <script src="https://unpkg.com/wavesurfer.js"></script>
     <!-- Importa o script para a sincronização -->
     <script src="{{ asset('/js/audio-sync.js') }}"></script>
-    <!-- Importa o script do card das palras -->
-    <script src="{{ asset('/js/word-tooltip.js') }}"></script>
-    <!-- Importa o script do card das palras -->
-    <script src="{{ asset('/js/btn-favorite-tooltip.js') }}"></script>
 
     <div id="tooltip" class="hidden absolute bg-white p-3 shadow-md border rounded-md"></div>
-    @endsection
 
-   <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const audio = new Audio("{{ Storage::url($texts->audio->file_path) }}");
-    const playButton = document.getElementById("playButton");
-    const timer = document.getElementById("audioTimer");
 
-    const response = await fetch("{{ Storage::url($texts->audio->speech_marks_path) }}");
-    const lines = (await response.text()).trim().split("\n");
-    const marks = lines.map(line => JSON.parse(line)).filter(m => m.type === "sentence");
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleButton = document.getElementById("toggle-translation");
+    const translatedSection = document.getElementById("translated-section");
+    const textGrid = document.getElementById("text-grid");
 
-audio.addEventListener("timeupdate", () => {
-    const currentTime = audio.currentTime;
+    if (toggleButton && translatedSection && textGrid) {
+        toggleButton.addEventListener("click", () => {
+            translatedSection.classList.toggle("hidden");
 
-    for (let i = 0; i < marks.length; i++) {
-        const start = marks[i].time / 1000;
-        const end = marks[i + 1] ? marks[i + 1].time / 1000 : audio.duration;
+            if (translatedSection.classList.contains("hidden")) {
+                toggleButton.textContent = "Mostrar tradução";
 
-        const el = document.querySelector(`#sentence-${i}`);
-        if (el) {
-            if (currentTime >= start && currentTime < end) {
-                el.classList.add("bg-yellow-200");
+                // Remove grid de 2 colunas → usa apenas uma
+                textGrid.classList.remove("grid-cols-2");
+                textGrid.classList.add("grid-cols-1");
             } else {
-                el.classList.remove("bg-yellow-200");
+                toggleButton.textContent = "Ocultar tradução";
+
+                // Volta para duas colunas
+                textGrid.classList.remove("grid-cols-1");
+                textGrid.classList.add("grid-cols-2");
             }
-        }
+        });
     }
 });
-
-    playButton.addEventListener("click", () => {
-        if (audio.paused) {
-            audio.play();
-        } else {
-            audio.pause();
-        }
-    });
-});
 </script>
+
+
+@endsection

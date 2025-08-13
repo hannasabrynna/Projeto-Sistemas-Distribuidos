@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AmazonTranslateService;
 use App\Services\AmazonPollyService;
 use App\Models\Text;
 use App\Models\Audio;
@@ -32,49 +33,48 @@ class TextController extends Controller
         return view('texts.index', compact('texts'));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'tag' => 'required|string|max:255',
-            'audio' => 'nullable|file|mimes:mp3,wav,ogg|max:409600',
-        ]);
+public function store(Request $request, AmazonTranslateService $translateService)
+{
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+        'tag' => 'required|string|max:255',
+        'audio' => 'nullable|file|mimes:mp3,wav,ogg|max:409600',
+    ]);
 
-        // Criar o texto
-        $text = Text::create([
-            'title' => $request->input('title'),
-            'content' => $request->input('content'),
-            'tag' => $request->input('tag'),
-            'idUser' => auth()->id(),
-        ]);
+    // Criar o texto
+    $text = Text::create([
+        'title' => $request->input('title'),
+        'content' => $request->input('content'),
+        'tag' => $request->input('tag'),
+        'idUser' => auth()->id(),
+    ]);
 
-        // Se o usuário enviou um áudio, salvar normalmente
-        if ($request->hasFile('audio')) {
-            $audioFile = $request->file('audio');
-            $filePath = $audioFile->store('audio', 'public');
-
-            Audio::create([
-                'idText' => $text->id,
-                'file_path' => $filePath,
-                'title' => $audioFile->getClientOriginalName(),
-            ]);
-        } else {
-            // Caso contrário, gerar o áudio com o Amazon Polly
-            $pollyService = new AmazonPollyService();
-            $filePath = $pollyService->synthesizeSpeech($request->input('content'));
-            $speechMarksPath = $pollyService->generateSpeechMarks($request->input('content'));
-
-            Audio::create([
-                'idText' => $text->id,
-                'file_path' => $filePath,
-                'speech_marks_path' => $speechMarksPath,
-                'title' => 'Gerado automaticamente pelo Polly',
-            ]);
-        }
-
-        return redirect()->route('texts.index')->with('success', 'Texto e áudio adicionados com sucesso!');
+    // Tradução do texto para português (Amazon Translate)
+    try {
+        $translated = $translateService->translateText($text->content);
+        $text->translated_content = $translated;
+        $text->save();
+    } catch (\Exception $e) {
+        \Log::error('Erro ao traduzir o texto: ' . $e->getMessage());
     }
+
+     //Gera automaticamente  via Polly
+        $pollyService = new AmazonPollyService();
+        $filePath = $pollyService->synthesizeSpeech($request->input('content'));
+        $speechMarksPath = $pollyService->generateSpeechMarks($request->input('content'));
+
+        Audio::create([
+            'idText' => $text->id,
+            'file_path' => $filePath,
+            'speech_marks_path' => $speechMarksPath,
+            'title' => $text->title,
+        ]);
+
+
+    return redirect()->route('texts.index')->with('success', 'Texto, áudio e tradução adicionados com sucesso!');
+}
+
 
     public function create()
     {
@@ -105,18 +105,31 @@ class TextController extends Controller
         return redirect()->route('texts.index')->with('success', 'Texto e  áudio atualizados com sucesso!');
     }
 
-    public function show($id)
-    {
-        $texts = Text::with('audio')->findOrFail($id);
-        return view('texts.show', compact('texts'));
+    public function show($id, AmazonTranslateService $translateService)
+{
+    $texts = Text::with('audio')->findOrFail($id);
+
+    // Se não tiver tradução salva no banco
+    if (!$texts->translated_content) {
+        $translated = $translateService->translateText($texts->content);
+
+        $texts->translated_content = $translated;
+        $texts->save();
+
     }
+
+    return view('texts.show', [
+        'texts' => $texts,
+        'translatedText' => $texts->translated_content
+    ]);
+}
 
     public function destroy($id)
     {
         $text = Text::with('audio')->findOrFail($id);
 
         if ($text->audio) {
-            Storage::disk('public')->delete($text->audio->file_path);
+            Storage::disk('s3')->delete($text->audio->file_path);
             $text->audio->delete();
         }
 

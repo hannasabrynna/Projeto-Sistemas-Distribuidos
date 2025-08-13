@@ -30,19 +30,24 @@ class AmazonPollyService
             'OutputFormat' => 'mp3',
             'Text' => $text,
             'TextType' => 'text',
-             'VoiceId' => 'Ruth', //para escolher a voz, veja a lista de vozes disponíveis: https://us-east-1.console.aws.amazon.com/polly/home/SynthesizeSpeech
+            'VoiceId' => 'Ruth', // veja outras vozes disponíveis no console da AWS
             'Engine' => 'neural'
         ]);
 
         $filename = $filename ?? uniqid('audio_') . '.mp3';
         $path = 'audios/' . $filename;
 
-        Storage::disk('public')->put($path, $result['AudioStream']->getContents());
+        // Obtendo o stream de áudio retornado pelo Polly
+        $audioStream = $result['AudioStream'];
 
-        return $path;
+        // Salvando o conteúdo no S3
+        Storage::disk('s3')->put($path, $audioStream->__toString());
+
+        return $path; // caminho salvo no banco
     }
 
-   //Metodo para gerar o JSON com os tempos (para sincronizar o texto com o áudio)
+
+    //Metodo para gerar o JSON com os tempos (para sincronizar o texto com o áudio)
     public function generateSpeechMarks(string $text, string $filename = null): string
     {
         $result = $this->client->synthesizeSpeech([
@@ -57,8 +62,8 @@ class AmazonPollyService
         $filename = $filename ?? uniqid('marks_') . '.json';
         $path = 'speechmarks/' . $filename;
 
-        Storage::disk('public')->put($path, $result['AudioStream']->getContents());
+        Storage::disk('s3')->put($path, $result['AudioStream']->getContents());
 
-        return $path;
+        return Storage::disk('s3')->url($path);
     }
 }
