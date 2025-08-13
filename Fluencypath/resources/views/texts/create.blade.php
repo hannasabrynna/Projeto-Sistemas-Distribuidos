@@ -33,6 +33,7 @@
         <div class=" w-[1240px] h-[900px]">
             <div class="bg-white overflow-hidden shadow-md sm:rounded-lg py-6 px-20">
                 <form
+                    id="create-text-form"
                     action="{{ route('texts.store') }}"
                     method="POST"
                     enctype="multipart/form-data"
@@ -92,4 +93,30 @@
 
 </div>
 
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("create-text-form");
+    const btn = document.getElementById("save-text-btn");
+    let isSubmitting = false;
+
+    form.addEventListener("submit", (e) => {
+        if (isSubmitting) {
+            e.preventDefault(); // bloqueia novos envios
+            return false;
+        }
+
+        isSubmitting = true;
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+        btn.innerHTML = '<span>Salvando...</span>'; // feedback visual
+    });
+});
+
+
+
+
+</script>
+
 @endsection
+
