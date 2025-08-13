@@ -22,6 +22,12 @@
                 { "name": "DB_USERNAME", "value": "fluency_path" },
                 { "name": "DB_PASSWORD", "value": "password_mysql" }
             ],
+            "dependsOn": [
+                {
+                    "containerName": "db",
+                    "condition": "START"
+                }
+            ],
             "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
@@ -36,10 +42,7 @@
                 },
                 "secretOptions": []
             },
-            "systemControls": [],
-            "links": [
-                "db"
-            ]
+            "systemControls": []
         },
         {
             "name": "db",

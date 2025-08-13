@@ -21,9 +21,20 @@ FROM php:8.3-apache-bookworm
 
 # Instalar dependências necessárias
 RUN apt-get update && apt-get install -y \
-        libzip-dev unzip git netcat-openbsd default-mysql-client \
+    libzip-dev unzip git netcat-openbsd default-mysql-client \
     && docker-php-ext-install pdo_mysql zip \
     && rm -rf /var/lib/apt/lists/*
+
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>\n\
+    ErrorLog \${APACHE_LOG_DIR}/error.log\n\
+    CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
+    </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+
 
 # Ativar mod_rewrite
 RUN a2enmod rewrite
@@ -36,12 +47,20 @@ COPY --from=composer_build /var/www/html /var/www/html
 # Copiar build do frontend (se aplicável)
 COPY --from=node_build /var/www/html/public /var/www/html/public
 
-# Copiar script wait-for-db.sh
+# Copiar script wait-for-db.sh e .htaccess
+# Certifique-se de que o .htaccess está sendo copiado!
 COPY wait-for-db.sh /usr/local/bin/wait-for-db.sh
-RUN chmod +x /usr/local/bin/wait-for-db.sh
+COPY public/.htaccess /var/www/html/public/.htaccess
 
-# Permissões
-RUN chown -R www-data:www-data /var/www/html
+# ===================================================================
+# PASSO CRÍTICO: AJUSTE DE PERMISSÕES
+# Execute todos os comandos de permissão no final.
+# ===================================================================
+RUN chmod +x /usr/local/bin/wait-for-db.sh && \
+    # Defina o proprietário de todos os arquivos para www-data
+    chown -R www-data:www-data /var/www/html && \
+    # Laravel requer permissões de escrita para as pastas storage e bootstrap/cache
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 ENTRYPOINT [ "wait-for-db.sh" ]
 
