@@ -1,0 +1,7 @@
+# Ignorar pastas de dependências e do git
+node_modules
+vendor
+.git
+
+# Exceção: NÃO ignore o arquivo .env
+!.env

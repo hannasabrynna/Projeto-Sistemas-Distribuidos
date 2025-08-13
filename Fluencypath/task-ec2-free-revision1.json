@@ -2,7 +2,7 @@
     "containerDefinitions": [
         {
             "name": "fluencypath-ecr",
-            "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr",
+            "image": "960005778154.dkr.ecr.us-east-1.amazonaws.com/fluencypath-ecr:latest",
             "cpu": 256,
             "memory": 256,
             "portMappings": [
@@ -16,11 +16,30 @@
             ],
             "essential": true,
             "environment": [
-                { "name": "DB_HOST", "value": "db" },
-                { "name": "DB_PORT", "value": "3306" },
-                { "name": "DB_DATABASE", "value": "fluency_path" },
-                { "name": "DB_USERNAME", "value": "fluency_path" },
-                { "name": "DB_PASSWORD", "value": "password_mysql" }
+                {
+                    "name": "DB_HOST",
+                    "value": "db"
+                },
+                {
+                    "name": "DB_PORT",
+                    "value": "3306"
+                },
+                {
+                    "name": "DB_DATABASE",
+                    "value": "fluency_path"
+                },
+                {
+                    "name": "DB_USERNAME",
+                    "value": "fluency_path"
+                },
+                {
+                    "name": "DB_PASSWORD",
+                    "value": "password_mysql"
+                },
+                {
+                    "name": "APP_KEY",
+                    "value": "base64:0QoThGFwo4pIvbO8fi8VgkHUk6ppLr7BzoJo1gNPQDQ="
+                }
             ],
             "dependsOn": [
                 {
@@ -60,10 +79,22 @@
             ],
             "essential": true,
             "environment": [
-                { "name": "MYSQL_ROOT_PASSWORD", "value": "password_mysql" },
-                { "name": "MYSQL_DATABASE", "value": "fluency_path" },
-                { "name": "MYSQL_USER", "value": "fluency_path" },
-                { "name": "MYSQL_PASSWORD", "value": "password_mysql" }
+                {
+                    "name": "MYSQL_ROOT_PASSWORD",
+                    "value": "password_mysql"
+                },
+                {
+                    "name": "MYSQL_DATABASE",
+                    "value": "fluency_path"
+                },
+                {
+                    "name": "MYSQL_USER",
+                    "value": "fluency_path"
+                },
+                {
+                    "name": "MYSQL_PASSWORD",
+                    "value": "password_mysql"
+                }
             ],
             "mountPoints": [
                 {

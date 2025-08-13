@@ -52,6 +52,8 @@ COPY --from=node_build /var/www/html/public /var/www/html/public
 COPY wait-for-db.sh /usr/local/bin/wait-for-db.sh
 COPY public/.htaccess /var/www/html/public/.htaccess
 
+RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
+
 # ===================================================================
 # PASSO CRÍTICO: AJUSTE DE PERMISSÕES
 # Execute todos os comandos de permissão no final.
