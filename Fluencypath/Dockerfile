@@ -1,12 +1,15 @@
 # -------------------------------
-# Etapa 1: Builder
+# Etapa 1: Composer
 # -------------------------------
 FROM composer:2 AS composer_build
 WORKDIR /var/www/html
-COPY . .
+COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
+COPY . .
 
-# Node build (se tiver frontend)
+# -------------------------------
+# Etapa 2: Node/Tailwind Build
+# -------------------------------
 FROM node:22-alpine AS node_build
 WORKDIR /var/www/html
 COPY package.json package-lock.json ./
@@ -15,16 +18,17 @@ COPY . .
 RUN npm run build
 
 # -------------------------------
-# Etapa 2: Runtime
+# Etapa 3: Runtime
 # -------------------------------
 FROM php:8.3-apache-bookworm
 
-# Instalar dependências necessárias
+# Instalar extensões PHP necessárias
 RUN apt-get update && apt-get install -y \
     libzip-dev unzip git netcat-openbsd default-mysql-client \
     && docker-php-ext-install pdo_mysql zip \
     && rm -rf /var/lib/apt/lists/*
 
+# Configurar Apache
 RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
     <Directory /var/www/html/public>\n\
@@ -35,36 +39,25 @@ RUN echo "<VirtualHost *:80>\n\
     CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
     </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
-
-# Ativar mod_rewrite
 RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
-# Copiar aplicação (PHP)
+# Copiar aplicação PHP
 COPY --from=composer_build /var/www/html /var/www/html
 
-# Copiar build do frontend (se aplicável)
-COPY --from=node_build /var/www/html/public /var/www/html/public
+# Copiar apenas o build do Vite
+COPY --from=node_build /var/www/html/public/build /var/www/html/public/build
 
-# Copiar script wait-for-db.sh e .htaccess
-# Certifique-se de que o .htaccess está sendo copiado!
+# Scripts e permissões
 COPY wait-for-db.sh /usr/local/bin/wait-for-db.sh
 COPY public/.htaccess /var/www/html/public/.htaccess
 
-RUN php artisan config:clear && php artisan route:clear && php artisan view:clear
+RUN chmod +x /usr/local/bin/wait-for-db.sh \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# ===================================================================
-# PASSO CRÍTICO: AJUSTE DE PERMISSÕES
-# Execute todos os comandos de permissão no final.
-# ===================================================================
-RUN chmod +x /usr/local/bin/wait-for-db.sh && \
-    # Defina o proprietário de todos os arquivos para www-data
-    chown -R www-data:www-data /var/www/html && \
-    # Laravel requer permissões de escrita para as pastas storage e bootstrap/cache
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-ENTRYPOINT [ "wait-for-db.sh" ]
+ENTRYPOINT ["wait-for-db.sh"]
 
 EXPOSE 80
 CMD ["apache2-foreground"]
