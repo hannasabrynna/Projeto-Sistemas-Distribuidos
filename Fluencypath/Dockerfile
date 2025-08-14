@@ -1,11 +1,10 @@
 # -------------------------------
 # Etapa 1: Composer
 # -------------------------------
-FROM composer:2 AS composer_build
-WORKDIR /var/www/html
-COPY composer.json composer.lock ./
+FROM composer:2 AS composer_build 
+WORKDIR /var/www/html 
+COPY . . 
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
-COPY . .
 
 # -------------------------------
 # Etapa 2: Node/Tailwind Build
